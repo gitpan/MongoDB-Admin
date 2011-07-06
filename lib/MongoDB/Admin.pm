@@ -15,7 +15,7 @@
 #
 
 package MongoDB::Admin;
-our $VERSION = '0.01';
+our $VERSION = '0.02';
 
 use Any::Moose;
 use MongoDB;
@@ -46,6 +46,9 @@ MongoDB::Admin - A collection of MongoDB administrative functions
     my $locked = $admin->fsync_lock_check();
     $admin->fsync_lock();
     $admin->fsync_unlock();
+
+    $admin->killOp($opid);
+
 
 =head1 METHODS
 
@@ -110,6 +113,23 @@ sub unlock {
     my ($self) = @_;
     my $result = $self->{connection}->get_database('admin')->get_collection('$cmd.sys.unlock')->find_one();
     if(exists($result->{'ok'}) && $result->{'ok'} == 1) {
+        return 1;
+    }
+    return 0;
+}
+
+=head2 killOp()
+
+    my $result = $conn->killOp($opid)
+
+Kill MongoDB Query with opid $opid
+
+=cut
+
+sub killOp {
+    my ($self, $opid) = @_;
+    my $result = $self->{connection}->get_database('admin')->get_collection('$cmd.sys.killop')->find_one(Tie::IxHash->new('op' => $opid));
+    if(exists($result->{'info'}) && $result->{'info'} eq 'attempting to kill op') {
         return 1;
     }
     return 0;

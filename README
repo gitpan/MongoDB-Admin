@@ -1,4 +1,4 @@
-MongoDB::Admin version 0.01
+MongoDB::Admin version 0.02
 ==========================
 
 MongoDB::Admin is a perl module implementing functions that exist in the 
