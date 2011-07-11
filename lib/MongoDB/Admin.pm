@@ -1,5 +1,5 @@
 #
-#  Copyright 2010 David Burley.
+#  Copyright 2010, 2011  David Burley.
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -15,7 +15,7 @@
 #
 
 package MongoDB::Admin;
-our $VERSION = '0.02';
+our $VERSION = '0.03';
 
 use Any::Moose;
 use MongoDB;
@@ -133,6 +133,146 @@ sub killOp {
         return 1;
     }
     return 0;
+}
+
+
+=head2 serverStatus()
+
+    my $result = $conn->serverStatus()
+
+Return the MongoDB server status detail
+
+=cut
+
+sub serverStatus {
+    my ($self) = @_;    
+    my $result = $self->{connection}->get_database('admin')->get_collection('$cmd')->find_one(Tie::IxHash->new('serverStatus' => 1));
+    if(exists($result->{'ok'}) && $result->{'ok'} == 1) {
+        return $result;
+    }
+    return undef;
+}
+
+
+=head2 stats($db)
+
+    my $result = $conn->stats($db)
+
+Return the stats detail for the database named $db
+
+=cut
+sub stats {
+    my ($self, $db) = @_; 
+    $db = 'admin' unless(defined($db));
+    my $result = $self->{connection}->get_database($db)->get_collection('$cmd')->find_one(Tie::IxHash->new('dbstats' => 1));
+    if(exists($result->{'ok'}) && $result->{'ok'} == 1) {
+        return $result;
+    }
+    return undef;
+}
+
+=head2 serverBuildInfo()
+
+    my $result = $conn->serverBuildInfo()
+    print $result->{version};
+
+Return the MongoDB server build info.
+
+=cut
+
+sub serverBuildInfo {
+    my ($self) = @_;
+    my $result = $self->{connection}->get_database('admin')->get_collection('$cmd')->find_one(Tie::IxHash->new('buildinfo' => 1));
+    if(exists($result->{'ok'}) && $result->{'ok'} == 1) {
+        return $result;
+    }
+    return undef;
+}
+
+=head2 version()
+
+    my $result = $conn->version()
+
+Return the MongoDB server version.
+
+=cut
+sub version {
+    my ($self) = @_;
+    my $result = $self->{connection}->get_database('admin')->get_collection('$cmd')->find_one(Tie::IxHash->new('buildinfo' => 1));
+    if(exists($result->{'ok'}) && exists($result->{'version'}) && $result->{'ok'} == 1) {
+        return $result->{'version'};
+    }
+    return undef; 
+}
+
+# Replicaset Commands
+
+
+=head2 rs_status()
+
+    my $result = $conn->rs_status()
+
+Return the replica set status.
+
+=cut
+sub rs_status {
+    my ($self) = @_;
+    my $result = $self->{connection}->get_database('admin')->get_collection('$cmd')->find_one(Tie::IxHash->new('replSetGetStatus' => 1));
+    if(exists($result->{'ok'}) && $result->{'ok'} == 1) {
+        return $result;
+    }
+    return undef;
+}
+
+=head2 rs_stepDown([$secs])
+
+    my $result = $conn->rs_stepDown()
+
+Step down as the master server, 60 second duration for new election on default.
+
+=cut
+sub rs_stepDown {
+    my ($self, $secs) = @_;
+    $secs = 60 unless(defined($secs));
+    my $result = $self->{connection}->get_database('admin')->get_collection('$cmd')->find_one(Tie::IxHash->new('replSetStepDown' => $secs));
+    if(exists($result->{'ok'}) && $result->{'ok'} == 1) {
+        return $result;
+    }
+    warn $result->{'errmsg'};
+    return undef;
+}
+
+=head2 rs_freeze([$secs])
+
+    my $result = $conn->rs_freeze()
+
+Freeze the replica member from becoming the new master for $secs seconds, or 60 seconds if undefined.
+
+=cut
+
+sub rs_freeze {
+    my ($self, $secs) = @_;
+    $secs = 60 unless(defined($secs));
+    my $result = $self->{connection}->get_database('admin')->get_collection('$cmd')->find_one(Tie::IxHash->new('replSetFreeze' => $secs));
+    if(exists($result->{'ok'}) && $result->{'ok'} == 1) {
+        return $result;
+    }
+    warn $result->{'errmsg'};
+    return undef;
+}
+
+=head2 rs_conf()
+
+    my $result = $conn->rs_conf()
+
+Return the replica set config
+
+=cut
+
+sub rs_conf {
+    my ($self) = @_;
+    my $result = $self->{connection}->get_database('local')->get_collection('system.replset')->find_one();
+    return $result;
 }
 
 no Any::Moose;

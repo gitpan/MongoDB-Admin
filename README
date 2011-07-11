@@ -1,4 +1,4 @@
-MongoDB::Admin version 0.02
+MongoDB::Admin version 0.03
 ==========================
 
 MongoDB::Admin is a perl module implementing functions that exist in the 
@@ -24,7 +24,7 @@ This module requires these other modules and libraries:
 
 COPYRIGHT AND LICENSE
 
-Copyright 2010 David Burley <david@geek.net>.
+Copyright 2010, 2011 David Burley <david@geek.net>.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
